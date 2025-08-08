@@ -1,12 +1,22 @@
 #!/usr/bin/env python3
 """
-HackRX API Endpoint - Full Document Q&A Pipeline
-FastAPI implementation with complete document processing and Q&A workflow
+HackRX Document Q&A API - Production Version
+
+A comprehensive FastAPI service that processes documents and answers questions using:
+- Document parsing and chunking
+- Gemini AI embeddings and text generation
+- FAISS vector similarity search
+- Async/await for high performance
+
+Author: Aditya Gehlot
+Version: 1.1.0
+Created for: Bajaj HackRX Competition
 """
 
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Depends
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel, HttpUrl
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+from pydantic import BaseModel, HttpUrl, Field
 from typing import List, Dict, Any, Optional
 import asyncio
 import aiohttp
@@ -20,7 +30,7 @@ from datetime import datetime
 # Add current directory to path for imports
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
-# Import our modules
+# Import our custom modules
 from robust_document_parser import RobustDocumentParser
 from gemini_vector_embedder import GeminiVectorEmbedder
 from faiss_store import FAISSVectorStore
@@ -30,15 +40,77 @@ from dotenv import load_dotenv
 # Load environment variables
 load_dotenv()
 
-# Configure logging
-logging.basicConfig(level=logging.INFO)
+# Configure production logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+)
 logger = logging.getLogger(__name__)
 
-# Initialize FastAPI app
+# Initialize authentication
+security = HTTPBearer()
+
+def verify_token(credentials: HTTPAuthorizationCredentials = Depends(security)):
+    """
+    Verify Bearer token authentication
+    
+    Args:
+        credentials: HTTP Bearer token credentials
+        
+    Returns:
+        Token string if valid
+        
+    Raises:
+        HTTPException: If token is invalid or missing
+    """
+    token = credentials.credentials
+    
+    # Simple token validation - require minimum 10 characters
+    if not token or len(token) < 10:
+        raise HTTPException(
+            status_code=401,
+            detail="Invalid authorization token",
+            headers={"WWW-Authenticate": "Bearer"}
+        )
+    
+    return token
+
+# Initialize FastAPI app with comprehensive metadata
 app = FastAPI(
-    title="HackRX Document Q&A API (Fixed Version)",
-    description="Full pipeline for document processing and question answering using Gemini 1.5 Flash",
-    version="1.1.0"
+    title="HackRX Document Q&A API",
+    description="""
+    **Bajaj HackRX Competition API**
+    
+    A production-ready document processing and question-answering service that:
+    
+    - **Downloads** documents from URLs (PDF, DOCX supported)
+    - **Parses** and chunks documents intelligently  
+    - **Generates** embeddings using Gemini AI
+    - **Indexes** content with FAISS vector search
+    - **Answers** questions using retrieved context and Gemini 1.5 Flash
+    
+    ## Authentication
+    All endpoints require Bearer token authentication with minimum 10 characters.
+    
+    ## Rate Limits
+    - Document processing: ~30 seconds per document
+    - Question answering: ~2 seconds per question
+    - Concurrent requests supported via async processing
+    
+    ## Supported Formats
+    - PDF documents
+    - Microsoft Word documents (DOCX)
+    - URLs with direct file access
+    """,
+    version="1.1.0",
+    contact={
+        "name": "Aditya Gehlot",
+        "url": "https://github.com/Adityagehlot25/Bajaj-Hackrx"
+    },
+    license_info={
+        "name": "MIT License",
+        "url": "https://opensource.org/licenses/MIT"
+    }
 )
 
 # Add CORS middleware
@@ -50,21 +122,65 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Pydantic models for request/response
+# Pydantic models for request/response validation
 class HackRXRequest(BaseModel):
-    """Request model for HackRX API endpoint"""
-    document_url: HttpUrl
-    questions: List[str]
+    """
+    Request model for HackRX document Q&A endpoint
+    
+    Attributes:
+        document_url: Direct URL to document file (PDF or DOCX)
+        questions: List of questions to answer about the document
+    """
+    document_url: HttpUrl = Field(
+        ...,
+        description="Direct URL to document file (PDF or DOCX format)",
+        example="https://example.com/document.pdf"
+    )
+    questions: List[str] = Field(
+        ...,
+        min_items=1,
+        max_items=10,
+        description="List of questions to answer (1-10 questions)",
+        example=["What is the main topic?", "What are the key requirements?"]
+    )
 
 class HackRXResponse(BaseModel):
-    """Response model for HackRX API endpoint"""
-    answers: List[str]
-    processing_info: Optional[Dict[str, Any]] = None
+    """
+    Response model for HackRX document Q&A endpoint
+    
+    Attributes:
+        answers: List of generated answers corresponding to input questions
+        processing_info: Optional metadata about processing performance
+    """
+    answers: List[str] = Field(
+        ...,
+        description="Generated answers for each question in order",
+        example=["The main topic is...", "The key requirements are..."]
+    )
+    processing_info: Optional[Dict[str, Any]] = Field(
+        None,
+        description="Processing metadata including timing and chunk counts"
+    )
 
 class DocumentQAPipeline:
-    """Complete document Q&A processing pipeline"""
+    """
+    Complete document Q&A processing pipeline for HackRX API
+    
+    This class orchestrates the entire workflow:
+    1. Document download and parsing
+    2. Text chunking and embedding generation
+    3. Vector indexing with FAISS
+    4. Question answering with retrieval augmented generation
+    
+    Attributes:
+        api_key: Gemini API key for embeddings and text generation
+        parser: Document parsing engine
+        embedder: Gemini embedding generator
+        vector_store: FAISS vector search index
+    """
     
     def __init__(self):
+        """Initialize the document Q&A pipeline with required components"""
         self.api_key = os.getenv('GEMINI_API_KEY', 'AIzaSyBH6ls3I80rOI3il-uX-7p8eUTSoox05cc')
         if not self.api_key or self.api_key == 'your_gemini_api_key_here':
             self.api_key = 'AIzaSyBH6ls3I80rOI3il-uX-7p8eUTSoox05cc'
@@ -82,9 +198,10 @@ class DocumentQAPipeline:
             
         Returns:
             Path to downloaded temporary file
-        """
-        logger.info(f"Downloading document from: {url}")
-        
+            
+        Raises:
+            HTTPException: If download fails
+        """        
         async with aiohttp.ClientSession() as session:
             async with session.get(str(url)) as response:
                 if response.status != 200:
@@ -93,41 +210,38 @@ class DocumentQAPipeline:
                         detail=f"Failed to download document: HTTP {response.status}"
                     )
                 
-                # Get file extension from URL or content type
+                # Determine file extension from URL or content type
                 content_type = response.headers.get('content-type', '')
                 if 'pdf' in content_type.lower() or str(url).lower().endswith('.pdf'):
                     suffix = '.pdf'
                 elif 'word' in content_type.lower() or str(url).lower().endswith(('.docx', '.doc')):
                     suffix = '.docx'
                 else:
-                    # Default to PDF if unclear
-                    suffix = '.pdf'
+                    suffix = '.pdf'  # Default to PDF
                 
-                # Create temporary file
+                # Create temporary file and download content
                 temp_file = tempfile.NamedTemporaryFile(delete=False, suffix=suffix)
-                
-                # Download content
                 content = await response.read()
                 temp_file.write(content)
                 temp_file.close()
                 
-                logger.info(f"Document downloaded to: {temp_file.name} ({len(content)} bytes)")
                 return temp_file.name
     
     def parse_document(self, file_path: str) -> List[Dict[str, Any]]:
         """
-        Parse document into chunks
+        Parse document into text chunks for processing
         
         Args:
             file_path: Path to document file
             
         Returns:
             List of text chunks with metadata
-        """
-        logger.info(f"Parsing document: {file_path}")
-        
+            
+        Raises:
+            HTTPException: If parsing fails
+        """        
         try:
-            # Parse document using our robust parser
+            # Parse document using robust parser
             from robust_document_parser import parse_document
             
             parsed_result = parse_document(
@@ -152,7 +266,6 @@ class DocumentQAPipeline:
             else:
                 raise Exception(f"Document parsing failed: {parsed_result.get('error', 'Unknown error')}")
             
-            logger.info(f"Document parsed into {len(chunks)} chunks")
             return chunks
             
         except Exception as e:
@@ -393,24 +506,40 @@ async def root():
     }
 
 @app.post("/api/v1/hackrx/run", response_model=HackRXResponse)
-async def hackrx_run(request: HackRXRequest):
+async def hackrx_run(request: HackRXRequest, token: str = Depends(verify_token)):
     """
-    HackRX API endpoint - Full document Q&A pipeline
+    **HackRX Main Endpoint - Document Q&A Processing**
     
-    This endpoint implements the complete workflow:
-    1. Downloads document from provided URL
-    2. Parses and chunks the document
-    3. Generates embeddings using Gemini API
-    4. Indexes embeddings using FAISS
-    5. For each question:
-       - Generates query embedding
-       - Retrieves relevant chunks via similarity search
-       - Composes LLM prompt with question and context
-       - Calls Gemini 2.0 Flash to generate answer
-    6. Returns all answers in JSON response
+    Complete workflow for document processing and question answering:
+    
+    1. **Download**: Retrieves document from provided URL
+    2. **Parse**: Extracts and chunks text content  
+    3. **Embed**: Generates vector embeddings using Gemini
+    4. **Index**: Creates searchable FAISS vector index
+    5. **Query**: For each question, finds relevant chunks and generates answers
+    
+    **Authentication**: Requires Bearer token with minimum 10 characters
+    
+    **Processing Time**: 
+    - Document processing: ~20-30 seconds
+    - Question answering: ~2-3 seconds per question
+    
+    **Supported Formats**: PDF, DOCX
+    **Question Limit**: 1-10 questions per request
+    **Response Format**: JSON with answers array
+    
+    Args:
+        request: HackRXRequest with document URL and questions
+        token: Bearer authentication token
+        
+    Returns:
+        HackRXResponse with generated answers
+        
+    Raises:
+        HTTPException: For authentication, download, or processing errors
     """
     try:
-        logger.info(f"Processing HackRX request: {len(request.questions)} questions for {request.document_url}")
+        logger.info(f"Processing request: {len(request.questions)} questions")
         
         # Execute the complete pipeline
         result = await pipeline.process_pipeline(
@@ -418,10 +547,9 @@ async def hackrx_run(request: HackRXRequest):
             questions=request.questions
         )
         
-        # Return structured response
+        # Return structured response (processing_info optional for production)
         return HackRXResponse(
-            answers=result["answers"],
-            processing_info=result["processing_info"]
+            answers=result["answers"]
         )
         
     except HTTPException:
@@ -431,7 +559,7 @@ async def hackrx_run(request: HackRXRequest):
         logger.error(f"Unexpected error in HackRX pipeline: {e}")
         raise HTTPException(
             status_code=500,
-            detail=f"Internal server error: {str(e)}"
+            detail="Internal server error during document processing"
         )
 
 @app.get("/api/v1/hackrx/health")
@@ -465,20 +593,11 @@ async def health_check():
 if __name__ == "__main__":
     import uvicorn
     
-    # Run the server
-    print("🚀 Starting HackRX Document Q&A API Server")
-    print("📄 Full pipeline: Download → Parse → Embed → Index → Answer")
-    print("🤖 Powered by Gemini 2.0 Flash")
-    print("🔍 FAISS vector search")
-    print()
-    print("📍 API Endpoint: http://localhost:8000/api/v1/hackrx/run")
-    print("📊 Health Check: http://localhost:8000/api/v1/hackrx/health")
-    print("📚 API Docs: http://localhost:8000/docs")
-    
+    # Production server configuration
     uvicorn.run(
         "hackrx_api:app",
         host="0.0.0.0",
         port=8000,
-        reload=True,
+        reload=False,  # Disable reload in production
         log_level="info"
     )

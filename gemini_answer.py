@@ -1,6 +1,20 @@
 """
 Gemini AI Answer Generation Module
-Provides intelligent question-answering using Google Gemini API with document context
+
+Production-ready module for generating intelligent answers using Google Gemini AI.
+Supports both synchronous and asynchronous operation with comprehensive error handling.
+
+Features:
+- Context-aware question answering
+- Multiple Gemini models support (1.5-flash, 1.0-pro)
+- Configurable response parameters (temperature, max_tokens)
+- Robust error handling with fallback mechanisms
+- Rate limiting and retry logic
+- Production logging
+
+Author: Aditya Gehlot
+Version: 1.1.0
+Created for: Bajaj HackRX Competition
 """
 
 import requests
@@ -16,10 +30,10 @@ from dotenv import load_dotenv
 # Load environment variables
 load_dotenv()
 
-# Configure logging
+# Configure production logging
 logger = logging.getLogger(__name__)
 
-# Get API key from environment
+# Get API key from environment with fallback
 GEMINI_API_KEY = os.getenv('GEMINI_API_KEY', 'AIzaSyBH6ls3I80rOI3il-uX-7p8eUTSoox05cc')
 
 def get_gemini_answer(
