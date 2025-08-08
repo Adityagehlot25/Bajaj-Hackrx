@@ -20,13 +20,13 @@ load_dotenv()
 logger = logging.getLogger(__name__)
 
 # Get API key from environment
-GEMINI_API_KEY = os.getenv('GEMINI_API_KEY')
+GEMINI_API_KEY = os.getenv('GEMINI_API_KEY', 'AIzaSyBH6ls3I80rOI3il-uX-7p8eUTSoox05cc')
 
 def get_gemini_answer(
     user_question: str, 
     relevant_clauses: str,
     api_key: Optional[str] = None,
-    model: str = "gemini-2.0-flash-exp",
+    model: str = "gemini-1.5-flash",
     max_tokens: int = 1000,
     temperature: float = 0.3
 ) -> Dict[str, Any]:
@@ -295,7 +295,7 @@ async def get_gemini_answer_async(
     user_question: str, 
     relevant_clauses: str,
     api_key: Optional[str] = None,
-    model: str = "gemini-2.0-flash-exp",
+    model: str = "gemini-1.5-flash",
     max_tokens: int = 1000,
     temperature: float = 0.3
 ) -> Dict[str, Any]:

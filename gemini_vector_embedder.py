@@ -41,9 +41,9 @@ class GeminiVectorEmbedder:
             api_key: Google Gemini API key. If not provided, will look for GEMINI_API_KEY env var
             model: Gemini embedding model to use (embedding-001 is the standard model)
         """
-        self.api_key = api_key or os.getenv("GEMINI_API_KEY")
-        if not self.api_key:
-            raise ValueError("Gemini API key is required. Set GEMINI_API_KEY environment variable or pass api_key parameter.")
+        self.api_key = api_key or os.getenv("GEMINI_API_KEY", "AIzaSyBH6ls3I80rOI3il-uX-7p8eUTSoox05cc")
+        if not self.api_key or self.api_key == 'your_gemini_api_key_here':
+            self.api_key = "AIzaSyBH6ls3I80rOI3il-uX-7p8eUTSoox05cc"
         
         self.model = model
         # Updated base URL for the correct Gemini API endpoint

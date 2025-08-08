@@ -36,9 +36,9 @@ logger = logging.getLogger(__name__)
 
 # Initialize FastAPI app
 app = FastAPI(
-    title="HackRX Document Q&A API",
-    description="Full pipeline for document processing and question answering using Gemini 2.0 Flash",
-    version="1.0.0"
+    title="HackRX Document Q&A API (Fixed Version)",
+    description="Full pipeline for document processing and question answering using Gemini 1.5 Flash",
+    version="1.1.0"
 )
 
 # Add CORS middleware
@@ -65,9 +65,9 @@ class DocumentQAPipeline:
     """Complete document Q&A processing pipeline"""
     
     def __init__(self):
-        self.api_key = os.getenv('GEMINI_API_KEY')
-        if not self.api_key:
-            raise ValueError("GEMINI_API_KEY environment variable is required")
+        self.api_key = os.getenv('GEMINI_API_KEY', 'AIzaSyBH6ls3I80rOI3il-uX-7p8eUTSoox05cc')
+        if not self.api_key or self.api_key == 'your_gemini_api_key_here':
+            self.api_key = 'AIzaSyBH6ls3I80rOI3il-uX-7p8eUTSoox05cc'
         
         self.parser = RobustDocumentParser()
         self.embedder = GeminiVectorEmbedder(api_key=self.api_key)
@@ -282,11 +282,11 @@ class DocumentQAPipeline:
             
             relevant_context = "\n\n".join(context_chunks)
             
-            # Generate answer using Gemini 2.0 Flash
+            # Generate answer using Gemini 1.5 Flash
             answer_result = await get_gemini_answer_async(
                 user_question=question,
                 relevant_clauses=relevant_context,
-                model="gemini-2.0-flash-exp",
+                model="gemini-1.5-flash",
                 max_tokens=1000,
                 temperature=0.3
             )
@@ -380,16 +380,16 @@ pipeline = DocumentQAPipeline()
 async def root():
     """Health check endpoint"""
     return {
-        "message": "HackRX Document Q&A API",
-        "version": "1.0.0",
+        "message": "HackRX Document Q&A API (Fixed Version)",
+        "version": "1.1.0",
         "status": "operational",
-        "features": [
-            "Document download from URLs",
-            "Multi-format parsing (PDF, DOCX)",
-            "Gemini 2.0 Flash embeddings",
-            "FAISS vector search",
-            "AI-powered question answering"
-        ]
+        "api_key_status": "configured",
+        "endpoints": {
+            "main": "/api/v1/hackrx/run",
+            "health": "/api/v1/hackrx/health",
+            "docs": "/docs"
+        },
+        "cors": "enabled"
     }
 
 @app.post("/api/v1/hackrx/run", response_model=HackRXResponse)
