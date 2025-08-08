@@ -134,44 +134,109 @@ git push -u origin main
 ## 🟢 Render Deployment (Recommended)
 
 ### Step 1: Create Render Account
-1. Go to [Render.com](https://render.com)
-2. Sign up with GitHub account
-3. Authorize Render to access your repositories
+1. **Go to** [Render.com](https://render.com)
+2. **Click "Get Started for Free"** 
+3. **Sign up with GitHub account** (recommended)
+   - Click "GitHub" button
+   - Authorize Render to access your repositories
+   - Select "Authorize render"
 
-### Step 2: Create New Web Service
-1. Click "New +" → "Web Service"
-2. Connect your GitHub repository: `hackrx-fastapi-app`
-3. Configure deployment:
+### Step 2: Link Your GitHub Repository
+1. **From Render Dashboard**, click **"New +"** in top-right corner
+2. **Select "Web Service"** from the dropdown menu
+3. **Connect Repository**:
+   - If first time: Click "Connect GitHub" → "Install Render" → Select your account
+   - Find and select: **`Adityagehlot25/Bajaj-Hackrx`**
+   - Click **"Connect"** next to your repository
 
-#### Basic Settings:
-- **Name**: `hackrx-api-production`
-- **Root Directory**: `.` (leave empty if code is in root)
-- **Environment**: `Python 3`
-- **Region**: Choose closest to your users
-- **Branch**: `main`
+### Step 3: Configure Web Service Settings
 
-#### Build & Deploy:
-- **Build Command**: `pip install -r requirements.txt`
-- **Start Command**: `uvicorn hackrx_api_fixed:app --host 0.0.0.0 --port $PORT`
+#### Basic Configuration:
+- **Name**: `bajaj-hackrx-api` (or your preferred name)
+- **Region**: `Oregon (US West)` (or closest to your location)
+- **Branch**: `main` ✅
+- **Root Directory**: *(leave empty - code is in repository root)*
+
+#### Build & Deploy Configuration:
+- **Runtime**: Select **"Python 3"** ✅
+- **Build Command**: 
+  ```bash
+  pip install -r requirements.txt
+  ```
+- **Start Command**: 
+  ```bash
+  uvicorn hackrx_api_fixed:app --host 0.0.0.0 --port $PORT
+  ```
 
 #### Instance Type:
-- **Plan**: `Free` (for testing) or `Starter` (for production)
+- **Plan**: Select **"Free"** ✅
+  - $0/month
+  - 512 MB RAM  
+  - Shared CPU
+  - Perfect for testing and development
 
-### Step 3: Configure Environment Variables
-In Render dashboard → your service → Environment:
+### Step 4: Configure Environment Variables
+Before deploying, you **MUST** set environment variables:
+
+1. **Scroll down to "Environment Variables" section**
+2. **Click "Add Environment Variable"** for each:
 
 ```env
-GEMINI_API_KEY=AIzaSyBDjD9Y7eCR79neOpjIpdxeoppXRiZHqtQ
-TEAM_TOKEN=your_team_token_here
-DEFAULT_EMBEDDING_MODEL=embedding-001
-PYTHONPATH=/opt/render/project/src
+GEMINI_API_KEY
+Value: AIzaSyBDjD9Y7eCR79neOpjIpdxeoppXRiZHqtQ
+
+TEAM_TOKEN  
+Value: your_hackrx_team_token_here
+
+DEFAULT_EMBEDDING_MODEL
+Value: embedding-001
+
+PYTHONPATH
+Value: /opt/render/project/src
 ```
 
-### Step 4: Deploy
-1. Click "Create Web Service"
-2. Render will automatically build and deploy
-3. Monitor deployment logs for any issues
-4. Once deployed, you'll get a URL like: `https://hackrx-api-production.onrender.com`
+**⚠️ Important**: Replace `your_hackrx_team_token_here` with your actual HackRX team token!
+
+### Step 5: Deploy Your Application
+1. **Review all settings** (ensure everything matches above)
+2. **Click "Create Web Service"** 
+3. **Wait for deployment** (this will take 2-5 minutes)
+
+#### During Deployment You'll See:
+```
+==> Cloning from https://github.com/Adityagehlot25/Bajaj-Hackrx...
+==> Using Python version 3.11.6 via runtime.txt
+==> Installing dependencies with pip
+==> Starting service with 'uvicorn hackrx_api_fixed:app --host 0.0.0.0 --port $PORT'
+==> Your service is live 🎉
+```
+
+### Step 6: Get Your Deployment URL
+Once deployment completes:
+1. **Your app will be live** at a URL like:
+   ```
+   https://bajaj-hackrx-api.onrender.com
+   ```
+2. **Copy this URL** - you'll need it for testing
+3. **Your API endpoint** will be:
+   ```
+   https://bajaj-hackrx-api.onrender.com/api/v1/hackrx/run
+   ```
+
+### Step 7: Verify Deployment Success
+Test your root endpoint:
+```bash
+curl https://your-app-name.onrender.com/
+```
+
+Expected response:
+```json
+{
+  "message": "HackRX Document Q&A API (Fixed Version)",
+  "version": "1.1.0",
+  "status": "operational"
+}
+```
 
 ---
 
