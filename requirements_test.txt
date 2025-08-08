@@ -1,0 +1,18 @@
+# Testing requirements for HackRx API
+# Install with: pip install -r requirements_test.txt
+
+# Core testing dependencies
+pytest>=7.4.0
+pytest-asyncio>=0.21.0
+pytest-cov>=4.1.0
+
+# FastAPI testing dependencies  
+httpx>=0.24.1
+fastapi[all]>=0.100.0
+
+# Additional testing utilities
+requests>=2.31.0
+responses>=0.23.0
+
+# Include main application dependencies
+-r requirements.txt
