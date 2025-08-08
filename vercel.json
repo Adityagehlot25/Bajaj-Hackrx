@@ -1,0 +1,14 @@
+{
+  "builds": [
+    {
+      "src": "hackrx_api_fixed.py",
+      "use": "@vercel/python"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/(.*)",
+      "dest": "hackrx_api_fixed.py"
+    }
+  ]
+}
