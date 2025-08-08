@@ -178,9 +178,16 @@ git push -u origin main
 ### Step 4: Configure Environment Variables
 Before deploying, you **MUST** set environment variables:
 
+#### Method 1: During Service Creation
 1. **Scroll down to "Environment Variables" section**
 2. **Click "Add Environment Variable"** for each:
 
+#### Method 2: After Service Creation  
+1. **Go to Render Dashboard** → Your service
+2. **Click "Environment" in the sidebar**
+3. **Click "+ Add Environment Variable"**
+
+#### Required Variables:
 ```env
 GEMINI_API_KEY
 Value: AIzaSyBDjD9Y7eCR79neOpjIpdxeoppXRiZHqtQ
@@ -195,7 +202,10 @@ PYTHONPATH
 Value: /opt/render/project/src
 ```
 
-**⚠️ Important**: Replace `your_hackrx_team_token_here` with your actual HackRX team token!
+**⚠️ Important**: 
+- Replace `your_hackrx_team_token_here` with your actual HackRX team token!
+- Click "Save Changes" after adding all variables
+- Service will automatically redeploy with new environment variables
 
 ### Step 5: Deploy Your Application
 1. **Review all settings** (ensure everything matches above)

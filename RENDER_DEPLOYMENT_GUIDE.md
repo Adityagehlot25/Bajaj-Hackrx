@@ -105,42 +105,82 @@ uvicorn hackrx_api_fixed:app --host 0.0.0.0 --port $PORT
 
 **Critical Step** - Your app won't work without these!
 
-### 4.1 Add Environment Variables
-Scroll down to **"Environment Variables"** section:
+### 4.1 Add Environment Variables During Initial Setup
+If you're still on the Web Service creation page:
 
-1. **Click "Add Environment Variable"**
-2. **Add each variable below**:
+1. **Scroll down to "Environment Variables" section**
+2. **Click "Add Environment Variable"** button
+3. **Add each variable below one by one**
+
+### 4.2 Add Environment Variables After Service Creation
+If your service is already created:
+
+1. **Go to Render Dashboard** (https://dashboard.render.com)
+2. **Find and click your service**: `bajaj-hackrx-api`
+3. **In the sidebar, click "Environment"**
+4. **Click "+ Add Environment Variable"** button
+5. **Add each variable below**
+
+### 4.3 Required Environment Variables
 
 #### Variable 1: Gemini API Key
-```
-Key: GEMINI_API_KEY
-Value: AIzaSyBDjD9Y7eCR79neOpjIpdxeoppXRiZHqtQ
-```
+1. **Click "+ Add Environment Variable"**
+2. **Enter**:
+   ```
+   Key: GEMINI_API_KEY
+   Value: AIzaSyBDjD9Y7eCR79neOpjIpdxeoppXRiZHqtQ
+   ```
+3. **Click "Add"**
 
 #### Variable 2: HackRX Team Token
-```
-Key: TEAM_TOKEN
-Value: your_hackrx_team_token_here
-```
-**⚠️ Replace with your actual HackRX team token!**
+1. **Click "+ Add Environment Variable"** again
+2. **Enter**:
+   ```
+   Key: TEAM_TOKEN
+   Value: your_hackrx_team_token_here
+   ```
+   **⚠️ Replace `your_hackrx_team_token_here` with your actual HackRX team token!**
+3. **Click "Add"**
 
 #### Variable 3: Default Model
-```
-Key: DEFAULT_EMBEDDING_MODEL
-Value: embedding-001
-```
+1. **Click "+ Add Environment Variable"** again
+2. **Enter**:
+   ```
+   Key: DEFAULT_EMBEDDING_MODEL
+   Value: embedding-001
+   ```
+3. **Click "Add"**
 
 #### Variable 4: Python Path (Optional)
-```
-Key: PYTHONPATH
-Value: /opt/render/project/src
-```
+1. **Click "+ Add Environment Variable"** again
+2. **Enter**:
+   ```
+   Key: PYTHONPATH
+   Value: /opt/render/project/src
+   ```
+3. **Click "Add"**
 
-### 4.2 Verify Variables
-Double-check all environment variables are correctly entered:
-- ✅ GEMINI_API_KEY (no spaces, exact key)
-- ✅ TEAM_TOKEN (your actual token)
-- ✅ DEFAULT_EMBEDDING_MODEL (exactly: `embedding-001`)
+### 4.4 Save and Apply Changes
+1. **After adding all variables**, you'll see them listed
+2. **Click "Save Changes"** button (if available)
+3. **Your service will automatically redeploy** with new environment variables
+4. **Wait for redeployment** to complete (1-2 minutes)
+
+### 4.5 Verify Variables Are Set
+1. **Check the Environment tab** shows all 4 variables
+2. **Look for deployment logs** showing "Environment variables updated"
+3. **Variables should show**:
+   - ✅ GEMINI_API_KEY (value hidden for security)
+   - ✅ TEAM_TOKEN (value hidden for security)  
+   - ✅ DEFAULT_EMBEDDING_MODEL = embedding-001
+   - ✅ PYTHONPATH = /opt/render/project/src
+
+### 4.6 Manual Redeploy (If Needed)
+If changes don't auto-deploy:
+1. **Go to your service dashboard**
+2. **Click "Manual Deploy"** button
+3. **Select "Deploy latest commit"**
+4. **Click "Yes, deploy"**
 
 ---
 
