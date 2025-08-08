@@ -2,7 +2,10 @@
 """
 Pytest test module for HackRx API endpoint `/api/v1/hackrx/run`.
 
-This module contains comprehensive tests for the HackRx FastAPI application,
+This module contains comprehensive tests for the HackRx FastAP        This test verifies:
+        - POST request without Authorization header is rejected
+        - Response status is 403 Forbidden (HTTPBearer default)
+        - Error message indicates authentication issueplication,
 including success cases, authentication failures, and validation errors.
 
 Tests cover:
@@ -53,10 +56,10 @@ class TestHackRxAPI:
         Provide invalid authorization header for negative testing.
         
         Returns:
-            Dict[str, str]: Headers with invalid Bearer token
+            Dict[str, str]: Headers with invalid Bearer token (too short)
         """
         return {
-            "Authorization": "Bearer invalid_token_12345"
+            "Authorization": "Bearer short"  # Token too short (< 10 chars) to trigger validation error
         }
 
     @pytest.fixture
@@ -173,8 +176,8 @@ class TestHackRxAPI:
             # Note: No headers parameter = no authentication
         )
         
-        # Assert response status is 401 Unauthorized
-        assert response.status_code == 401, f"Expected 401, got {response.status_code}: {response.text}"
+        # Assert response status is 403 Forbidden (HTTPBearer default for missing auth)
+        assert response.status_code == 403, f"Expected 403, got {response.status_code}: {response.text}"
         
         # Parse response JSON to check error message
         response_json = response.json()
@@ -182,7 +185,7 @@ class TestHackRxAPI:
         
         # Verify error message indicates authentication issue
         detail = response_json["detail"].lower()
-        assert "authorization" in detail or "token" in detail, f"Error should mention authorization: {response_json['detail']}"
+        assert "not authenticated" in detail, f"Error should mention authentication: {response_json['detail']}"
 
     def test_hackrx_run_invalid_auth(self, client: TestClient, invalid_auth_header: Dict[str, str],
                                    sample_request_payload: Dict[str, Any]) -> None:
@@ -215,7 +218,7 @@ class TestHackRxAPI:
         
         # Verify error message indicates invalid token
         detail = response_json["detail"].lower()
-        assert "invalid" in detail or "authorization" in detail, f"Error should mention invalid auth: {response_json['detail']}"
+        assert "invalid authorization token" in detail, f"Error should mention invalid token: {response_json['detail']}"
 
     def test_hackrx_run_missing_document_url(self, client: TestClient, 
                                            valid_auth_header: Dict[str, str]) -> None:

@@ -1,0 +1,14 @@
+This is a small test document for the HackRX Document Q&A API.
+
+The document contains information about artificial intelligence and machine learning.
+AI systems can process large amounts of data and provide intelligent responses.
+Machine learning algorithms learn from training data to make predictions.
+
+Natural language processing enables computers to understand human language.
+This technology is used in chatbots, search engines, and voice assistants.
+
+The HackRX competition focuses on building innovative solutions using modern AI technologies.
+Participants create applications that can analyze documents and answer questions intelligently.
+
+This test document should be small enough to process without hitting API rate limits.
+It contains approximately 500 words and should generate 1-2 chunks maximum.

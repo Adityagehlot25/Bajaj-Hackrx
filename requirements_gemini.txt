@@ -1,0 +1,42 @@
+# FastAPI Document Search System - Requirements
+# Updated to use Google Gemini instead of OpenAI
+
+# Core FastAPI dependencies
+fastapi>=0.100.0
+uvicorn[standard]>=0.23.0
+python-multipart>=0.0.6
+httpx>=0.24.0
+
+# HTTP requests for Gemini API (replaced OpenAI SDK)
+aiohttp>=3.8.0
+requests>=2.28.0
+
+# Document processing
+PyPDF2>=3.0.0
+python-docx>=0.8.11
+beautifulsoup4>=4.12.0
+lxml>=4.9.0
+
+# Vector search and embeddings
+faiss-cpu>=1.7.0
+numpy>=1.24.0
+
+# Data models and validation  
+pydantic>=2.0.0
+
+# Environment variables
+python-dotenv>=1.0.0
+
+# Logging and utilities
+typing-extensions>=4.5.0
+
+# Optional: For advanced document parsing
+# Uncomment if needed:
+# pdfplumber>=0.9.0
+# python-magic>=0.4.27
+
+# Development and testing (optional)
+# pytest>=7.0.0
+# pytest-asyncio>=0.21.0
+
+# Note: Removed openai dependency - now using direct HTTP requests to Gemini API
